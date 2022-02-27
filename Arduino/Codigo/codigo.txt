@@ -1,0 +1,84 @@
+#define SER 2 //ingreso de los datos seria
+#define RCLK 4 //reloj registro de almacenamiento
+#define SRCLK 3 //reloj de sincronizacion de lso datos
+
+#define LED0 1
+#define LED1 2
+#define LED2 4
+#define LED3 8
+#define LED4 16
+#define LED5 32
+#define LED6 64
+#define LED7 128
+
+String bina(int entero);
+String valores="", paso="", bin="";
+int i=0,i2=0, ind=0, num=0;
+
+int main()
+{
+  init();
+  Serial.begin(9600);
+  
+  pinMode(SER, INPUT);
+  pinMode(RCLK, OUTPUT);
+  pinMode(SRCLK, OUTPUT);
+  
+  Serial.println(" ");
+  Serial.print("Ingrese lista de valores: ");
+  while (Serial.available()==0) {
+  }
+  valores = Serial.readString();
+  Serial.println(valores);
+  
+  for(i=0;i<valores.length(); i++){
+    for (i2=i;valores[i2]!= ',';i2++){
+      if(valores[i2]=='\0'){
+        break;
+      }
+      else {
+        paso+=valores[i2];
+        num=paso.toInt();
+        ind++;
+      }
+    }
+    bin=bina(num);
+    Serial.print("bin: ");
+    Serial.println(bin);
+    Serial.print("num: ");
+    Serial.println(num);
+
+    i+=ind;
+    paso="";
+    ind=0;
+    num=0;
+  }
+  
+  Serial.print("Sale");
+  
+  while(1){
+    delay(500);
+  }
+  
+  return 0;
+}
+
+String bina(int entero)
+{
+	String linea_binario="";
+    if (entero>=0){
+        while (entero >0) {
+            if (entero%2==0){
+                linea_binario="0"+linea_binario;
+            }
+            else {
+                linea_binario="1"+linea_binario;
+            }
+            entero=entero/2;
+        }
+        while (linea_binario.length()<8){
+            linea_binario="0"+linea_binario;
+        }
+    }
+    return linea_binario;
+}
