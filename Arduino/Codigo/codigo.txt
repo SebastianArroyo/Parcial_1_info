@@ -8,6 +8,10 @@
 
 #define CONF 7 // Confirma que es 1 o 0
 
+#define S 11 // SER
+#define SC 12 // CLOCK
+#define C 13 // LATCH
+
 String bina(int entero);
 void leer(String valores);
 String valores="";
@@ -54,7 +58,7 @@ int main()
 void leer(String valores)
 {
   String paso="", bin="", bin2="";
-  int i=0,i2=0, ind=0, num=0, p=0,p2=0,p3=0,numprimo=0,numcop=0;
+  int i=0,i2=0, ind=0, num=0, p=0,p2=0,p3=0,numprimo=0,numcop=0, cont=0;
   bool prim=true, ante=false;
   
   // Lee cada uno de los valores
@@ -71,7 +75,8 @@ void leer(String valores)
     
     // Pasa el nuemro de string a entero
     num=paso.toInt();
-    
+    i+=ind;
+    ind=0;
     // Verificamos si el numero es primo
     prim=true;
     if(num==0 || num==1){
@@ -126,10 +131,27 @@ void leer(String valores)
       //Verifica si el valor después del primo es 249
       
       if(!digitalRead(7)){
+        i++;
         Serial.println("249 encontrado je je");
-        
-        
-        
+        Serial.print("i: ");
+        Serial.println(i);
+        for(cont=0; cont<2 ; i++,cont++){
+          for (i2=i;valores[i2]!= ',';i2++,ind++){
+            if(valores[i2]=='\0'){
+              paso+=valores[i2];
+              break;
+            }
+            else {
+              paso+=valores[i2];
+            }
+          }
+          num=paso.toInt();
+          i+=ind;
+          paso="";
+          ind=0;
+        }
+        Serial.print("El valor real es ");
+        Serial.println(num);
         
         //En este punto tiene que contar dos posiciones a la derecha
         
@@ -138,7 +160,7 @@ void leer(String valores)
         Serial.println("Usted quien es?");
       }
 
-      delay(4000);
+      delay(500);
       digitalWrite(RC,LOW);
       digitalWrite(RCLK,LOW);
       
@@ -151,9 +173,9 @@ void leer(String valores)
     }
     
     ante=prim;
-    i+=ind;
+    
     paso="";
-    ind=0;
+    
     numcop=num;
     num=0;
   }
