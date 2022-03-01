@@ -1,29 +1,33 @@
-#define SER 2 //ingreso de los datos seria
-#define RCLK 4 //reloj registro de almacenamiento
-#define SRCLK 3 //reloj de sincronizacion de lso datos
+#define SER 2 //ingreso de los datos serial
+#define SRCLK 3 //reloj de registro de desplazamiento
+#define RCLK 4 //reloj registro de salida
 
-#define LED0 1
-#define LED1 2
-#define LED2 4
-#define LED3 8
-#define LED4 16
-#define LED5 32
-#define LED6 64
-#define LED7 128
+#define SR 11 // SER
+#define SRCK 12 // CLOCK
+#define RC 13 // LATCH
+
 
 String bina(int entero);
-String valores="", paso="", bin="";
-int i=0,i2=0, ind=0, num=0;
+void leer(String valores);
+String valores="";
+
 
 int main()
 {
   init();
   Serial.begin(9600);
   
+  //Habilitamos puertos para envio de informacion a chip 74HC959
   pinMode(SER, INPUT);
-  pinMode(RCLK, OUTPUT);
   pinMode(SRCLK, OUTPUT);
+  pinMode(RCLK, OUTPUT);
   
+  pinMode(SR, INPUT);
+  pinMode(SRCK, OUTPUT);
+  pinMode(RC, OUTPUT);
+  
+  
+  //Ingresamos los datos encriptados y estos se guardan en un string
   Serial.println(" ");
   Serial.print("Ingrese lista de valores: ");
   while (Serial.available()==0) {
@@ -31,6 +35,25 @@ int main()
   valores = Serial.readString();
   Serial.println(valores);
   
+  //Funcion que toma los valores ingresados y los envia al chip 74HC595
+  leer(valores);
+  
+  Serial.print("TERMINA");
+  
+  while(1){
+    delay(500);
+  }
+  
+  return 0;
+}
+
+void leer(String valores)
+{
+  String paso="", bin="", bin2="";
+  int i=0,i2=0, ind=0, num=0, p=0,p2=0,p3=0,numprimo=0;
+  bool prim=true;
+  
+  // Lee cada uno de los valores
   for(i=0;i<valores.length(); i++){
     for (i2=i;valores[i2]!= ',';i2++){
       if(valores[i2]=='\0'){
@@ -38,29 +61,96 @@ int main()
       }
       else {
         paso+=valores[i2];
-        num=paso.toInt();
         ind++;
       }
     }
+    
+    // Pasa el nuemro de string a entero
+    num=paso.toInt();
+    
+    // Verificamos si el numero es primo
+    
+    for(p3=2;p3<num/2;p3++){
+      if(num==4){
+        prim=false;
+      }
+      if(num%p3==0){
+        prim=false;
+      }
+    }
+    
+    /*
+    // si el nuemro es primo
+    if(prim==true){
+    
+    }
+    // si el numero NO es primo
+    else{
+    
+    }*/
+    
+    
+    // Funcion que pasa a binario el valor
     bin=bina(num);
-    Serial.print("bin: ");
-    Serial.println(bin);
-    Serial.print("num: ");
-    Serial.println(num);
-
+    
+    for(p=0;p<bin.length();p++){
+      if(bin[p]=='0'){
+        digitalWrite(SER,LOW);
+      }
+      else{
+        digitalWrite(SER,HIGH);
+      }
+      digitalWrite(SRCLK,HIGH);
+      digitalWrite(SRCLK,LOW);
+    }
+    digitalWrite(RCLK,HIGH);
+    
+    // Bandera en el chip 2 74HC595
+    String bandera="11111001"; //249 en binario
+    for(p2=0;p2<bandera.length();p2++){
+      if(bandera[p2]=='0'){
+        digitalWrite(SR,LOW);
+      }
+      else{
+        digitalWrite(SR,HIGH);
+      }
+      digitalWrite(SRCK,HIGH);
+      digitalWrite(SRCK,LOW);
+    }
+    digitalWrite(RC,HIGH);
+    
+    /*
+    // si el ultimo led es low(osea que el dato es 249) y prim es true(osea 
+    //es un primo el anterior a el) y real es 0, entonces 
+    //avanzamos dos posiciones y ese valor en la posicion dos seria la real
+    if(){
+      //para avanzar dos posiciones seria i++ solo una vez, ya que cuando 
+      //llegue al for lo sumara otra posicion, tener otra variable para identificar
+      //si el valor que llega es un real, por ejemplo real=1, si real es igual a uno
+      //significa que ya paso por aca identificando el real
+      
+    }
+    // si el ultimo led es low(osea que el dato es 249) y prim es true y real es 1, entonces 
+    //ese valor seria la real y lo mandamos al arduino 2
+    else if(){
+    }
+    //si ninguna de las dos se cumple, continue ya que no es ni igual a la bandera, o si
+    //es igual el anterior no es primo no es primo
+    else{
+    }
+    */
+    
+    delay(1000);
+    //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< DESPUES DE COMENTAR MOVER POS
+    digitalWrite(RC,LOW);
+    digitalWrite(RCLK,LOW);
+    
     i+=ind;
     paso="";
     ind=0;
     num=0;
   }
   
-  Serial.print("Sale");
-  
-  while(1){
-    delay(500);
-  }
-  
-  return 0;
 }
 
 String bina(int entero)
