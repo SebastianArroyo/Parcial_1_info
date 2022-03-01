@@ -6,6 +6,7 @@
 #define SRCK 12 // CLOCK
 #define RC 13 // LATCH
 
+#define CONF 7 // Confirma que es 1 o 0
 
 String bina(int entero);
 void leer(String valores);
@@ -26,6 +27,8 @@ int main()
   pinMode(SRCK, OUTPUT);
   pinMode(RC, OUTPUT);
   
+  pinMode(CONF, INPUT);
+  
   
   //Ingresamos los datos encriptados y estos se guardan en un string
   Serial.println(" ");
@@ -36,6 +39,7 @@ int main()
   Serial.println(valores);
   
   //Funcion que toma los valores ingresados y los envia al chip 74HC595
+  
   leer(valores);
   
   Serial.print("TERMINA");
@@ -50,8 +54,8 @@ int main()
 void leer(String valores)
 {
   String paso="", bin="", bin2="";
-  int i=0,i2=0, ind=0, num=0, p=0,p2=0,p3=0,numprimo=0;
-  bool prim=true;
+  int i=0,i2=0, ind=0, num=0, p=0,p2=0,p3=0,numprimo=0,numcop=0;
+  bool prim=true, ante=false;
   
   // Lee cada uno de los valores
   for(i=0;i<valores.length(); i++){
@@ -69,88 +73,90 @@ void leer(String valores)
     num=paso.toInt();
     
     // Verificamos si el numero es primo
-    
-    for(p3=2;p3<num/2;p3++){
-      if(num==4){
-        prim=false;
-      }
-      if(num%p3==0){
-        prim=false;
-      }
+    prim=true;
+    if(num==0 || num==1){
+      prim=false;
+      Serial.println("Es 0 o 1");
     }
-    
-    /*
-    // si el nuemro es primo
-    if(prim==true){
-    
-    }
-    // si el numero NO es primo
     else{
+      for(p3=2;p3<num;++p3){
+        if(num%p3==0){
+          prim=false;
+          break;
+        }
+      }
+    }
     
-    }*/
-    
-    
-    // Funcion que pasa a binario el valor
-    bin=bina(num);
-    
-    for(p=0;p<bin.length();p++){
-      if(bin[p]=='0'){
-        digitalWrite(SER,LOW);
+    //reconoce que antes hubo un primo
+    if(ante==true){
+      
+      Serial.print("El anterior ");
+      Serial.print(numcop);
+      Serial.println(" es primo. Verificando...");
+      
+      // Funcion que pasa a binario el valor
+      bin=bina(num);
+
+      for(p=0;p<bin.length();p++){
+        if(bin[p]=='0'){
+          digitalWrite(SER,LOW);
+        }
+        else{
+          digitalWrite(SER,HIGH);
+        }
+        digitalWrite(SRCLK,HIGH);
+        digitalWrite(SRCLK,LOW);
+      }
+      digitalWrite(RCLK,HIGH);
+
+      // Bandera en el chip 2 74HC595
+      String bandera="11111001"; //249 en binario
+      for(p2=0;p2<bandera.length();p2++){
+        if(bandera[p2]=='0'){
+          digitalWrite(SR,LOW);
+        }
+        else{
+          digitalWrite(SR,HIGH);
+        }
+        digitalWrite(SRCK,HIGH);
+        digitalWrite(SRCK,LOW);
+      }
+      digitalWrite(RC,HIGH);
+      
+      //Verifica si el valor después del primo es 249
+      
+      if(!digitalRead(7)){
+        Serial.println("249 encontrado je je");
+        
+        
+        
+        
+        //En este punto tiene que contar dos posiciones a la derecha
+        
       }
       else{
-        digitalWrite(SER,HIGH);
+        Serial.println("Usted quien es?");
       }
-      digitalWrite(SRCLK,HIGH);
-      digitalWrite(SRCLK,LOW);
-    }
-    digitalWrite(RCLK,HIGH);
-    
-    // Bandera en el chip 2 74HC595
-    String bandera="11111001"; //249 en binario
-    for(p2=0;p2<bandera.length();p2++){
-      if(bandera[p2]=='0'){
-        digitalWrite(SR,LOW);
-      }
-      else{
-        digitalWrite(SR,HIGH);
-      }
-      digitalWrite(SRCK,HIGH);
-      digitalWrite(SRCK,LOW);
-    }
-    digitalWrite(RC,HIGH);
-    
-    /*
-    // si el ultimo led es low(osea que el dato es 249) y prim es true(osea 
-    //es un primo el anterior a el) y real es 0, entonces 
-    //avanzamos dos posiciones y ese valor en la posicion dos seria la real
-    if(){
-      //para avanzar dos posiciones seria i++ solo una vez, ya que cuando 
-      //llegue al for lo sumara otra posicion, tener otra variable para identificar
-      //si el valor que llega es un real, por ejemplo real=1, si real es igual a uno
-      //significa que ya paso por aca identificando el real
+
+      delay(4000);
+      digitalWrite(RC,LOW);
+      digitalWrite(RCLK,LOW);
       
     }
-    // si el ultimo led es low(osea que el dato es 249) y prim es true y real es 1, entonces 
-    //ese valor seria la real y lo mandamos al arduino 2
-    else if(){
-    }
-    //si ninguna de las dos se cumple, continue ya que no es ni igual a la bandera, o si
-    //es igual el anterior no es primo no es primo
     else{
+      Serial.print("El anterior ");
+      Serial.print(numcop);
+      Serial.println(" no es primo. Siga");
+      //el anterior no es primo. Siga
     }
-    */
     
-    delay(1000);
-    //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< DESPUES DE COMENTAR MOVER POS
-    digitalWrite(RC,LOW);
-    digitalWrite(RCLK,LOW);
-    
+    ante=prim;
     i+=ind;
     paso="";
     ind=0;
+    numcop=num;
     num=0;
   }
-  
 }
 
 String bina(int entero)
