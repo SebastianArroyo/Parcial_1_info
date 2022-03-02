@@ -8,9 +8,9 @@
 
 #define CONF 7 // Confirma que es 1 o 0
 
-#define S 11 // SER
-#define SC 12 // CLOCK
-#define C 13 // LATCH
+#define S 8 // SER
+#define SC 9 // CLOCK
+#define C 10 // LATCH
 
 String bina(int entero);
 void leer(String valores);
@@ -33,6 +33,9 @@ int main()
   
   pinMode(CONF, INPUT);
   
+  pinMode(S, INPUT);
+  pinMode(SC, OUTPUT);
+  pinMode(c, OUTPUT);
   
   //Ingresamos los datos encriptados y estos se guardan en un string
   Serial.println(" ");
@@ -58,7 +61,8 @@ int main()
 void leer(String valores)
 {
   String paso="", bin="", bin2="";
-  int i=0,i2=0, ind=0, num=0, p=0,p2=0,p3=0,numprimo=0,numcop=0, cont=0;
+  int i=0,i2=0, ind=0, num=0, p=0,p2=0,p3=0,numprimo=0,numcop=1, cont=0;
+  int despu_i=0, num2=0,copia_ind=0;
   bool prim=true, ante=false;
   
   // Lee cada uno de los valores
@@ -81,7 +85,7 @@ void leer(String valores)
     prim=true;
     if(num==0 || num==1){
       prim=false;
-      Serial.println("Es 0 o 1");
+      //Serial.println("Es 0 o 1");
     }
     else{
       for(p3=2;p3<num;++p3){
@@ -94,11 +98,11 @@ void leer(String valores)
     
     //reconoce que antes hubo un primo
     if(ante==true){
-      
+      /*
       Serial.print("El anterior ");
       Serial.print(numcop);
       Serial.println(" es primo. Verificando...");
-      
+      */
       // Funcion que pasa a binario el valor
       bin=bina(num);
 
@@ -132,6 +136,9 @@ void leer(String valores)
       
       if(!digitalRead(7)){
         i++;
+        paso="";
+        despu_i=i;
+        
         Serial.println("249 encontrado je je");
         Serial.print("i: ");
         Serial.println(i);
@@ -145,30 +152,35 @@ void leer(String valores)
               paso+=valores[i2];
             }
           }
-          num=paso.toInt();
+          num2=paso.toInt();
+          copia_ind+=ind;
           i+=ind;
           paso="";
           ind=0;
         }
         Serial.print("El valor real es ");
-        Serial.println(num);
-        
-        //En este punto tiene que contar dos posiciones a la derecha
-        
+        Serial.println(num2);
+
+        num2=0;
+        i=despu_i+copia_ind+1;
       }
       else{
+        
         Serial.println("Usted quien es?");
+        Serial.print("El valor i es ");
+        Serial.println(i);
       }
-
+      
       delay(500);
       digitalWrite(RC,LOW);
       digitalWrite(RCLK,LOW);
       
     }
     else{
-      Serial.print("El anterior ");
-      Serial.print(numcop);
-      Serial.println(" no es primo. Siga");
+      //Serial.print("El anterior ");
+      //Serial.print(numcop);
+      //Serial.println(" no es primo. Siga. i es:");
+      //Serial.println(i);
       //el anterior no es primo. Siga
     }
     
