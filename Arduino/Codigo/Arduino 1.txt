@@ -14,13 +14,13 @@
 
 String bina(int entero);
 void leer(String valores);
-String valores="";
-
+String valores="",reales="";
 
 int main()
 {
   init();
   Serial.begin(9600);
+  //Serial.write(0x0d);
   
   //Habilitamos puertos para envio de informacion a chip 74HC959
   pinMode(SER, INPUT);
@@ -35,21 +35,25 @@ int main()
   
   pinMode(S, INPUT);
   pinMode(SC, OUTPUT);
-  pinMode(c, OUTPUT);
+  pinMode(C, OUTPUT);
   
   //Ingresamos los datos encriptados y estos se guardan en un string
-  Serial.println(" ");
-  Serial.print("Ingrese lista de valores: ");
+  //Serial.print("Ingrese lista de valores: ");
+  
+  
   while (Serial.available()==0) {
   }
   valores = Serial.readString();
-  Serial.println(valores);
+    
+  //Serial.println(valores);
   
   //Funcion que toma los valores ingresados y los envia al chip 74HC595
   
   leer(valores);
   
-  Serial.print("TERMINA");
+  
+  
+  //Serial.print("TERMINA");
   
   while(1){
     delay(500);
@@ -60,10 +64,10 @@ int main()
 
 void leer(String valores)
 {
-  String paso="", bin="", bin2="";
+  String paso="", bin="", bin2="",bina3="";
   int i=0,i2=0, ind=0, num=0, p=0,p2=0,p3=0,numprimo=0,numcop=1, cont=0;
   int despu_i=0, num2=0,copia_ind=0;
-  bool prim=true, ante=false;
+  bool prim=true, ante=false, prim_iter=true;
   
   // Lee cada uno de los valores
   for(i=0;i<valores.length(); i++){
@@ -98,11 +102,10 @@ void leer(String valores)
     
     //reconoce que antes hubo un primo
     if(ante==true){
-      /*
-      Serial.print("El anterior ");
-      Serial.print(numcop);
-      Serial.println(" es primo. Verificando...");
-      */
+      //Serial.print("El anterior ");
+      //Serial.print(numcop);
+      //Serial.println(" es primo. Verificando...");
+      
       // Funcion que pasa a binario el valor
       bin=bina(num);
 
@@ -135,13 +138,16 @@ void leer(String valores)
       //Verifica si el valor después del primo es 249
       
       if(!digitalRead(7)){
+        //------------------------------
+        Serial.print('1');
         i++;
         paso="";
         despu_i=i;
         
-        Serial.println("249 encontrado je je");
-        Serial.print("i: ");
-        Serial.println(i);
+        //Serial.println("249 encontrado je je");
+        //Serial.print("i: ");
+        //Serial.println(i);
+        
         for(cont=0; cont<2 ; i++,cont++){
           for (i2=i;valores[i2]!= ',';i2++,ind++){
             if(valores[i2]=='\0'){
@@ -158,30 +164,58 @@ void leer(String valores)
           paso="";
           ind=0;
         }
-        Serial.print("El valor real es ");
-        Serial.println(num2);
-
+        Serial.print('0');
+        //Serial.print("El valor real es ");
+        //Serial.println(num2);
+        
+        bina3=bina(num2);
+        
+        Serial.print(bina3);
+        
+        reales+=bina3;
+        
+        //Serial.print("Lo que se va a enviar es: ");
+        //Serial.println(reales);
+        
+        
+        for(p=0;p<bina3.length();p++){
+          if(bina3[p]=='0'){
+            digitalWrite(S,LOW);
+          }
+          else{
+            digitalWrite(S,HIGH);
+          }
+          digitalWrite(SC,HIGH);
+          digitalWrite(SC,LOW);
+        }
+        digitalWrite(C,HIGH);
+        
+        //delay(5000);
+        
+        //----------------------------------- ENVIAR AL PC 2
+        digitalWrite(C, LOW);
+        
+        
         num2=0;
         i=despu_i+copia_ind+1;
       }
       else{
-        
-        Serial.println("Usted quien es?");
-        Serial.print("El valor i es ");
-        Serial.println(i);
+        Serial.print('0');
+        //Serial.println("Usted quien es?");
+        //Serial.print("El valor i es ");
+        //Serial.println(i);
       }
       
-      delay(500);
       digitalWrite(RC,LOW);
       digitalWrite(RCLK,LOW);
       
     }
     else{
+      Serial.print(0);
       //Serial.print("El anterior ");
       //Serial.print(numcop);
       //Serial.println(" no es primo. Siga. i es:");
       //Serial.println(i);
-      //el anterior no es primo. Siga
     }
     
     ante=prim;
@@ -190,6 +224,7 @@ void leer(String valores)
     
     numcop=num;
     num=0;
+    delay(500);
   }
 }
 
@@ -199,10 +234,11 @@ String bina(int entero)
     if (entero>=0){
         while (entero >0) {
             if (entero%2==0){
-                linea_binario="0"+linea_binario;
+              
+              linea_binario="0"+linea_binario;
             }
             else {
-                linea_binario="1"+linea_binario;
+              linea_binario="1"+linea_binario;
             }
             entero=entero/2;
         }
