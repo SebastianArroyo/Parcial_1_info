@@ -1,0 +1,82 @@
+#include <LiquidCrystal.h> 
+
+LiquidCrystal lcd(2,3,4,5,6,7);
+
+int binario_ascii(String bloque);
+String recibido="",real="",todos_reales_enteros="";
+int tam_real=8,posi=0,paso=0;
+
+void setup()
+{
+  init();
+  Serial.begin(9600);
+  lcd.begin(16,2);
+}
+
+void loop(){
+  
+  while (Serial.available()!=0) {
+    recibido=Serial.read();
+    if (recibido=="48"){
+      Serial.print(0);
+    }
+    
+    else {
+      real="";
+      tam_real=8;
+      posi=0;
+      Serial.print(1);
+      if(posi==0){
+        posi++;
+        Serial.print(0);
+        Serial.read();
+      }
+      while(posi<8){
+        while(tam_real>0){
+          recibido=Serial.read();
+          posi++;
+          if (recibido=="48"){
+            real+='0';
+            tam_real--;
+          }
+          else{
+            real+='1';
+            tam_real--;
+          }
+        }
+      }
+      //Serial.println("este es el dato real");
+      //Serial.println(real);
+      
+      paso=binario_ascii(real);
+      //Serial.println(paso);
+      
+      //muestra en el LCD
+      
+      for(int i=16;i>=1;i--){//Desplazar texto hacia la izquierda en fila 0
+        lcd.clear();// limpiar pantalla
+        lcd.setCursor(i, 0); //posicionar cursor en fila 0
+
+        lcd.print(paso);// Escribir text lcd.clear()o
+        
+        delay(100);//retardo
+      }
+      
+    }
+    //Serial.print("termina");
+  }
+  delay(500);
+}
+
+int binario_ascii(String bloque){
+  int ascii[8]={128,64,32,16,8,4,2,1};
+  int suma=0;
+  for (int i=0;i<bloque.length();i++){
+    if (bloque[i]=='1'){
+      suma=suma+ascii[i];
+    }
+    else{
+    }
+  }
+  return suma;
+}
