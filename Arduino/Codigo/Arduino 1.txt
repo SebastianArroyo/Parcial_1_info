@@ -197,7 +197,7 @@ void leer(String valores)
         
         
         num2=0;
-        i=despu_i+copia_ind+1;
+        i=despu_i;
       }
       else{
         Serial.print('0');
